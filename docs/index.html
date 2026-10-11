@@ -21,8 +21,8 @@
     .actions { position:sticky; z-index:2; top:0; display:grid; grid-template-columns:1fr 1fr; gap:9px; padding:12px 0; background:linear-gradient(var(--paper) 82%,transparent); }
     .actions button { min-height:47px; padding:10px 11px; border:0; border-radius:12px; color:#fff; background:var(--navy); font-weight:800; cursor:pointer; }
     .actions button.secondary { color:var(--ink); background:#e2e8e5; }
+    .actions button:disabled { cursor:wait; opacity:.65; }
     .actions button:focus-visible,textarea:focus-visible,input:focus-visible { outline:3px solid var(--lilac); outline-offset:3px; }
-    .status { min-height:24px; margin:2px 0 8px; color:var(--mint-deep); font-size:.9rem; font-weight:700; }
     .filters { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 22px; }
     .filters button { padding:8px 11px; border:1px solid var(--line); border-radius:999px; color:var(--ink); background:var(--white); font-weight:700; cursor:pointer; }
     .filters button[aria-pressed="true"] { color:#fff; border-color:var(--navy); background:var(--navy); }
@@ -52,10 +52,10 @@
 <body>
   <header class="hero"><div class="wrap"><p class="eyebrow">YOH · nome provisório</p><h1>Questionário de decisões</h1><p class="subtitle">Preencha no telemóvel ou computador. Pode copiar, descarregar ou partilhar as respostas sem enviar nada para um servidor.</p><p class="notice"><strong>Não escreva dados de saúde pessoais.</strong> Não inclua nomes, fotografias, contactos, sintomas ou identificadores de pacientes. Este ficheiro é uma conversa de produto; não aprova uso clínico, critérios universais ou conformidade.</p></div></header>
   <main class="wrap">
-    <div class="actions" aria-label="Ações para as respostas"><button type="button" id="save">Guardar no dispositivo</button><button type="button" id="pdf">Criar PDF e partilhar</button><button type="button" id="copy" class="secondary">Copiar respostas</button><button type="button" id="download" class="secondary">Exportar TXT</button><button type="button" id="share" class="secondary">Partilhar texto</button><button type="button" id="clear" class="secondary">Limpar respostas</button></div>
+    <div class="actions" aria-label="Ações para as respostas"><button type="button" id="save">Guardar no dispositivo</button><button type="button" id="pdf">Criar e abrir PDF</button><button type="button" id="share-pdf" class="secondary" hidden>Partilhar PDF</button><button type="button" id="download-pdf" class="secondary" hidden>Descarregar PDF</button><button type="button" id="copy" class="secondary">Copiar respostas</button><button type="button" id="download" class="secondary">Exportar TXT</button><button type="button" id="share" class="secondary">Partilhar texto</button><button type="button" id="clear" class="secondary">Limpar respostas</button></div>
     <p class="status" id="status" aria-live="polite"></p>
     <div class="filters" aria-label="Filtro de perguntas"><button type="button" data-filter="now" aria-pressed="true">Responder agora (24)</button><button type="button" data-filter="all" aria-pressed="false">Tudo (42)</button><button type="button" data-filter="review" aria-pressed="false">Validar com especialistas (17)</button><button type="button" data-filter="later" aria-pressed="false">Mais tarde (1)</button></div>
-    <p class="help"><strong>Responda apenas ao que quiser.</strong> Pode saltar tudo e voltar depois. As perguntas para especialistas têm a sua própria vista. Para retomar, toque em <em>Guardar no dispositivo</em>: as respostas ficam só neste navegador/dispositivo. <label><input id="include-open" type="checkbox"> Incluir perguntas em aberto no PDF</label>. <em>Criar PDF e partilhar</em> gera o ficheiro offline; se este navegador não permitir partilhar ficheiros, descarrega <code>respostas-YOH.pdf</code> para enviar por WhatsApp ou email.</p>
+    <p class="help"><strong>Responda apenas ao que quiser.</strong> Pode saltar tudo e voltar depois. Para retomar, toque em <em>Guardar no dispositivo</em>: as respostas ficam só neste navegador/dispositivo. <label><input id="include-open" type="checkbox"> Incluir perguntas em aberto no PDF</label>. O PDF inclui respostas de todas as fases, mesmo que esteja a ver apenas um filtro. Para exportar, toque em <em>Criar e abrir PDF</em>: o PDF é criado offline e abre numa nova aba. No iPhone, abra esta ligação no <strong>Safari</strong> antes de exportar; se a abriu no navegador do WhatsApp, use o menu para a abrir no Safari. No visualizador do PDF, use o ícone Partilhar. Se a partilha de ficheiro não estiver disponível, for cancelada ou falhar, volte a esta página e toque em <em>Descarregar PDF</em> para o anexar manualmente.</p>
 <section class="section"><h2>1. Nome, marca e identidade</h2><p class="intro">Escolhas que dão uma identidade coerente ao conceito, sem registo nem promessa de disponibilidade de marca.</p>
 <article class="question" data-timing="now">
   <p class="number">Pergunta 1</p>
@@ -631,24 +631,316 @@ https://github.com/Hopding/pdf-lib -->
 
   </script>
   <script>
-    const status=document.getElementById('status'), cards=[...document.querySelectorAll('.question')], STORAGE_KEY='yoh-questionnaire-responses-v1';
-    function responseText(){const date=new Date().toLocaleString('pt-PT');const sections=[...document.querySelectorAll('.section')].map(section=>{const title=section.querySelector('h2').textContent;const answers=[...section.querySelectorAll('.question')].map(card=>{const question=card.querySelector('h3').textContent,meta=[...card.querySelectorAll('.tag')].map(tag=>tag.textContent).join(' · '),owner=card.querySelector('.owner').textContent,selected=[...card.querySelectorAll('[data-option]:checked')].map(input=>input.value),written=card.querySelector('[data-answer]').value.trim();return `• ${question}\n  ${meta}\n  ${owner}\n  Opções: ${selected.length?selected.join('; '):'—'}\n  Resposta: ${written||'—'}`});return `${title}\n${answers.join('\n\n')}`});const globalAnswer=document.getElementById('global-answer').value.trim();return `YOH — respostas ao questionário\nPreenchido em: ${date}\n\n${sections.join('\n\n')}\n\nFecho / observações finais: ${globalAnswer||'—'}\n\nNota: este documento não contém nem deve receber dados pessoais ou de saúde de pacientes.`}
-    const answerFields=[...document.querySelectorAll('[data-answer]')], optionFields=[...document.querySelectorAll('[data-option]')];
-    function saveResponses(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({answers:answerFields.map(field=>field.value),options:optionFields.map(field=>field.checked)}));status.textContent='Respostas guardadas apenas neste dispositivo/navegador.'}catch{status.textContent='Não foi possível guardar neste navegador. Exporte o TXT para não perder as respostas.'}}
-    function restoreResponses(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');if(!saved)return false;answerFields.forEach((field,index)=>field.value=saved.answers?.[index]||'');optionFields.forEach((field,index)=>field.checked=Boolean(saved.options?.[index]));return true}catch{return false}}
-    function clearResponses(){if(!window.confirm('Limpar todas as respostas guardadas neste dispositivo? Esta ação não pode ser desfeita.'))return;answerFields.forEach(field=>field.value='');optionFields.forEach(field=>field.checked=false);try{localStorage.removeItem(STORAGE_KEY)}catch{}status.textContent='Respostas locais limpas.'}
-    async function copyResponses(){try{await navigator.clipboard.writeText(responseText());status.textContent='Respostas copiadas. Cole no WhatsApp ou email.'}catch{status.textContent='Não foi possível copiar automaticamente. Use Exportar TXT.'}}
-    function downloadResponses(){const blob=new Blob([responseText()],{type:'text/plain;charset=utf-8'}),link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='respostas-questionario-YOH.txt';link.click();URL.revokeObjectURL(link.href);status.textContent='Ficheiro TXT preparado para enviar por WhatsApp ou email.'}
-    async function shareResponses(){if(navigator.share){try{await navigator.share({title:'YOH — respostas ao questionário',text:responseText()});status.textContent='Partilha concluída.'}catch(error){if(error.name!=='AbortError')status.textContent='A partilha não ficou disponível. Use Copiar respostas ou Exportar TXT.'}}else status.textContent='Partilha não disponível neste dispositivo. Use Copiar respostas ou Exportar TXT.'}
-    function pdfText(value){return String(value).replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/[—–]/g,'-').replace(/…/g,'...').replace(/[^ -ÿ\n]/g,'?')}
-    function wrapPdf(text,font,size,width){const lines=[];for(const paragraph of pdfText(text).split('\n')){let line='';for(const word of paragraph.split(/\s+/)){const candidate=line?`${line} ${word}`:word;if(line&&font.widthOfTextAtSize(candidate,size)>width){lines.push(line);line=word}else line=candidate}lines.push(line||' ')}return lines}
-    async function createPdfBlob(){const {PDFDocument,StandardFonts,rgb}=PDFLib,pdf=await PDFDocument.create(),font=await pdf.embedFont(StandardFonts.Helvetica),bold=await pdf.embedFont(StandardFonts.HelveticaBold),margin=42,width=595.28,height=841.89;let page,y;const addPage=()=>{page=pdf.addPage([width,height]);y=height-margin};const add=(text,{size=10,heading=false,color=rgb(.06,.14,.2)}={})=>{const activeFont=heading?bold:font;for(const line of wrapPdf(text,activeFont,size,width-margin*2)){if(y<margin+size+4)addPage();page.drawText(line,{x:margin,y,size,font:activeFont,color});y-=size+4}};addPage();pdf.setTitle('YOH — respostas ao questionário');add('YOH — respostas ao questionário',{size:18,heading:true,color:rgb(.06,.14,.2)});add(`Gerado localmente em ${new Date().toLocaleString('pt-PT')}`,{size:9,color:rgb(.35,.42,.46)});add('Não inclua dados pessoais ou de saúde de pacientes neste ficheiro.',{size:9,color:rgb(.55,.21,.18)});y-=6;const includeOpen=document.getElementById('include-open').checked;let entries=0;for(const [phase,label] of [['now','Responder agora'],['review','Validar com especialistas'],['later','Mais tarde']]){const phaseCards=cards.filter(card=>card.dataset.timing===phase);const lines=[];for(const card of phaseCards){const selected=[...card.querySelectorAll('[data-option]:checked')].map(input=>input.value),written=card.querySelector('[data-answer]').value.trim(),answered=selected.length||written;if(!answered&&!includeOpen)continue;lines.push({card,selected,written,answered})}if(!lines.length)continue;add(label,{size:13,heading:true,color:rgb(.09,.48,.45)});for(const entry of lines){entries++;const question=entry.card.querySelector('h3').textContent;add(`Pergunta ${entry.card.querySelector('.number').textContent.replace('Pergunta ','')}: ${question}`,{size:10,heading:true});if(entry.answered){if(entry.selected.length)add(`[x] Opções assinaladas: ${entry.selected.join('; ')}`);if(entry.written)add(`Resposta: ${entry.written}`)}else add('[ ] Em aberto — sem resposta (facultativo).',{size:9,color:rgb(.38,.43,.46)});y-=3}}if(!entries)add('Ainda não há respostas assinaladas. Este PDF pode ser completado mais tarde.',{size:11});const closing=document.getElementById('global-answer').value.trim();if(closing){add('Fecho / observações finais',{size:13,heading:true,color:rgb(.09,.48,.45)});add(closing)}add('Documento gerado offline no dispositivo. Não substitui validação clínica, jurídica, regulamentar ou de privacidade.',{size:8,color:rgb(.35,.42,.46)});return new Blob([await pdf.save()],{type:'application/pdf'})}
-    function downloadPdf(blob){const link=document.createElement('a'),url=URL.createObjectURL(blob);link.href=url;link.download='respostas-YOH.pdf';document.body.append(link);link.click();link.remove();window.setTimeout(()=>URL.revokeObjectURL(url),1000)}
-    async function createPdfAndShare(){try{status.textContent='A criar PDF localmente…';const blob=await createPdfBlob(),file=new File([blob],'respostas-YOH.pdf',{type:'application/pdf'});downloadPdf(blob);if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({title:'YOH — respostas ao questionário',files:[file]});status.textContent='PDF descarregado e partilhado.';return}catch(error){status.textContent=error.name==='AbortError'?'PDF descarregado, partilha cancelada. Envie respostas-YOH.pdf por WhatsApp ou email.':'PDF descarregado; a partilha falhou. Envie respostas-YOH.pdf por WhatsApp ou email.';return}}status.textContent='PDF descarregado. Este navegador não permite partilhar o ficheiro aqui; envie respostas-YOH.pdf por WhatsApp ou email.'}catch{status.textContent='Não foi possível criar o PDF neste navegador. Use Exportar TXT ou tente outro navegador.'}}
-    function applyFilter(filter,announce=true){cards.forEach(card=>{card.hidden=filter!=='all'&&card.dataset.timing!==filter});document.querySelectorAll('[data-filter]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.filter===filter)));if(announce)status.textContent=`A mostrar ${document.querySelectorAll('.question:not([hidden])').length} perguntas.`}
-    document.getElementById('save').addEventListener('click',saveResponses);document.getElementById('pdf').addEventListener('click',createPdfAndShare);document.getElementById('copy').addEventListener('click',copyResponses);document.getElementById('download').addEventListener('click',downloadResponses);document.getElementById('share').addEventListener('click',shareResponses);document.getElementById('clear').addEventListener('click',clearResponses);
-    document.querySelectorAll('[data-filter]').forEach(button=>button.addEventListener('click',()=>applyFilter(button.dataset.filter)));
-    const restored=restoreResponses();applyFilter('now',false);status.textContent=restored?'Respostas anteriormente guardadas foram repostas neste dispositivo.':'A mostrar as perguntas para responder agora.';
+    const status = document.getElementById('status');
+    const cards = [...document.querySelectorAll('.question')];
+    const STORAGE_KEY = 'yoh-questionnaire-responses-v1';
+    const pdfButton = document.getElementById('pdf');
+    const sharePdfButton = document.getElementById('share-pdf');
+    const downloadPdfButton = document.getElementById('download-pdf');
+    let currentPdfBlob;
+    let currentPdfFile;
+    let previewUrl;
+
+    function responseText() {
+      const date = new Date().toLocaleString('pt-PT');
+      const sections = [...document.querySelectorAll('.section')].map(section => {
+        const title = section.querySelector('h2').textContent;
+        const answers = [...section.querySelectorAll('.question')].map(card => {
+          const question = card.querySelector('h3').textContent;
+          const meta = [...card.querySelectorAll('.tag')].map(tag => tag.textContent).join(' · ');
+          const owner = card.querySelector('.owner').textContent;
+          const selected = [...card.querySelectorAll('[data-option]:checked')].map(input => input.value);
+          const written = card.querySelector('[data-answer]').value.trim();
+          return `• ${question}
+  ${meta}
+  ${owner}
+  Opções: ${selected.length ? selected.join('; ') : '—'}
+  Resposta: ${written || '—'}`;
+        });
+        return `${title}
+${answers.join('\n\n')}`;
+      });
+      const globalAnswer = document.getElementById('global-answer').value.trim();
+      return `YOH — respostas ao questionário
+Preenchido em: ${date}
+
+${sections.join('\n\n')}
+
+Fecho / observações finais: ${globalAnswer || '—'}
+
+Nota: este documento não contém nem deve receber dados pessoais ou de saúde de pacientes.`;
+    }
+
+    const answerFields = [...document.querySelectorAll('[data-answer]')];
+    const optionFields = [...document.querySelectorAll('[data-option]')];
+
+    function saveResponses() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          answers: answerFields.map(field => field.value),
+          options: optionFields.map(field => field.checked),
+        }));
+        status.textContent = 'Respostas guardadas apenas neste dispositivo/navegador.';
+      } catch {
+        status.textContent = 'Não foi possível guardar neste navegador. Exporte o TXT ou PDF para não perder as respostas.';
+      }
+    }
+
+    function restoreResponses() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        if (!saved) return false;
+        answerFields.forEach((field, index) => field.value = saved.answers?.[index] || '');
+        optionFields.forEach((field, index) => field.checked = Boolean(saved.options?.[index]));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function clearResponses() {
+      if (!window.confirm('Limpar todas as respostas guardadas neste dispositivo? Esta ação não pode ser desfeita.')) return;
+      answerFields.forEach(field => field.value = '');
+      optionFields.forEach(field => field.checked = false);
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {}
+      status.textContent = 'Respostas locais limpas.';
+    }
+
+    async function copyResponses() {
+      try {
+        await navigator.clipboard.writeText(responseText());
+        status.textContent = 'Respostas copiadas. Cole no WhatsApp ou email.';
+      } catch {
+        status.textContent = 'Não foi possível copiar automaticamente. Use Exportar TXT.';
+      }
+    }
+
+    function downloadResponses() {
+      const blob = new Blob([responseText()], { type: 'text/plain;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'respostas-questionario-YOH.txt';
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(link.href), 60_000);
+      status.textContent = 'Ficheiro TXT preparado para enviar por WhatsApp ou email.';
+    }
+
+    async function shareResponses() {
+      if (!navigator.share) {
+        status.textContent = 'Partilha não disponível neste dispositivo. Use Copiar respostas ou Exportar TXT.';
+        return;
+      }
+      try {
+        await navigator.share({ title: 'YOH — respostas ao questionário', text: responseText() });
+        status.textContent = 'Partilha concluída.';
+      } catch (error) {
+        if (error.name !== 'AbortError') status.textContent = 'A partilha não ficou disponível. Use Copiar respostas ou Exportar TXT.';
+      }
+    }
+
+    function pdfText(value) {
+      return String(value)
+        .replace(/[“”]/g, '"')
+        .replace(/[‘’]/g, "'")
+        .replace(/[—–]/g, '-')
+        .replace(/…/g, '...')
+        .replace(/[^\x20-\xFF\n]/g, '?');
+    }
+
+    function wrapPdf(text, font, size, width) {
+      const lines = [];
+      for (const paragraph of pdfText(text).split('\n')) {
+        let line = '';
+        for (const word of paragraph.split(/\s+/)) {
+          const candidate = line ? `${line} ${word}` : word;
+          if (line && font.widthOfTextAtSize(candidate, size) > width) {
+            lines.push(line);
+            line = word;
+          } else {
+            line = candidate;
+          }
+        }
+        lines.push(line || ' ');
+      }
+      return lines;
+    }
+
+    async function createPdfBlob() {
+      const { PDFDocument, StandardFonts, rgb } = PDFLib;
+      const pdf = await PDFDocument.create();
+      const font = await pdf.embedFont(StandardFonts.Helvetica);
+      const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+      const margin = 42;
+      const width = 595.28;
+      const height = 841.89;
+      let page;
+      let y;
+      const addPage = () => {
+        page = pdf.addPage([width, height]);
+        y = height - margin;
+      };
+      const add = (text, { size = 10, heading = false, color = rgb(.06, .14, .2) } = {}) => {
+        const activeFont = heading ? bold : font;
+        for (const line of wrapPdf(text, activeFont, size, width - margin * 2)) {
+          if (y < margin + size + 4) addPage();
+          page.drawText(line, { x: margin, y, size, font: activeFont, color });
+          y -= size + 4;
+        }
+      };
+
+      addPage();
+      pdf.setTitle('YOH — respostas ao questionário');
+      add('YOH — respostas ao questionário', { size: 18, heading: true, color: rgb(.06, .14, .2) });
+      add(`Gerado localmente em ${new Date().toLocaleString('pt-PT')}`, { size: 9, color: rgb(.35, .42, .46) });
+      add('Não inclua dados pessoais ou de saúde de pacientes neste ficheiro.', { size: 9, color: rgb(.55, .21, .18) });
+      y -= 6;
+
+      const includeOpen = document.getElementById('include-open').checked;
+      let entries = 0;
+      for (const [phase, label] of [
+        ['now', 'Responder agora'],
+        ['review', 'Validar com especialistas'],
+        ['later', 'Mais tarde'],
+      ]) {
+        const phaseCards = cards.filter(card => card.dataset.timing === phase);
+        const entriesInPhase = [];
+        for (const card of phaseCards) {
+          const selected = [...card.querySelectorAll('[data-option]:checked')].map(input => input.value);
+          const written = card.querySelector('[data-answer]').value.trim();
+          const answered = selected.length || written;
+          if (!answered && !includeOpen) continue;
+          entriesInPhase.push({ card, selected, written, answered });
+        }
+        if (!entriesInPhase.length) continue;
+        add(label, { size: 13, heading: true, color: rgb(.09, .48, .45) });
+        for (const entry of entriesInPhase) {
+          entries += 1;
+          const question = entry.card.querySelector('h3').textContent;
+          const number = entry.card.querySelector('.number').textContent.replace('Pergunta ', '');
+          add(`Pergunta ${number}: ${question}`, { size: 10, heading: true });
+          if (entry.answered) {
+            if (entry.selected.length) add(`[x] Opções assinaladas: ${entry.selected.join('; ')}`);
+            if (entry.written) add(`Resposta: ${entry.written}`);
+          } else {
+            add('[ ] Em aberto — sem resposta (facultativo).', { size: 9, color: rgb(.38, .43, .46) });
+          }
+          y -= 3;
+        }
+      }
+      if (!entries) add('Ainda não há respostas assinaladas. Este PDF pode ser completado mais tarde.', { size: 11 });
+      const closing = document.getElementById('global-answer').value.trim();
+      if (closing) {
+        add('Fecho / observações finais', { size: 13, heading: true, color: rgb(.09, .48, .45) });
+        add(closing);
+      }
+      add('Documento gerado offline no dispositivo. Não substitui validação clínica, jurídica, regulamentar ou de privacidade.', { size: 8, color: rgb(.35, .42, .46) });
+      return new Blob([await pdf.save()], { type: 'application/pdf' });
+    }
+
+    function openPdfPreview() {
+      const preview = window.open('', '_blank');
+      if (!preview) return null;
+      preview.document.title = 'YOH — a preparar PDF';
+      preview.document.body.innerHTML = '<p style="font:16px system-ui,sans-serif;padding:24px">A preparar o PDF localmente…</p>';
+      return preview;
+    }
+
+    function canSharePdf(file) {
+      try {
+        return Boolean(navigator.share && navigator.canShare && navigator.canShare({ files: [file] }));
+      } catch {
+        return false;
+      }
+    }
+
+    function updatePdfActions() {
+      downloadPdfButton.hidden = !currentPdfBlob;
+      sharePdfButton.hidden = !currentPdfFile || !canSharePdf(currentPdfFile);
+    }
+
+    function downloadPdf() {
+      if (!currentPdfBlob) return;
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(currentPdfBlob);
+      link.href = url;
+      link.download = 'respostas-YOH.pdf';
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      status.textContent = 'PDF preparado para guardar ou anexar manualmente.';
+    }
+
+    async function sharePdf() {
+      if (!currentPdfFile || !canSharePdf(currentPdfFile)) return;
+      try {
+        await navigator.share({ title: 'YOH — respostas ao questionário', files: [currentPdfFile] });
+        status.textContent = 'Partilha do PDF concluída.';
+      } catch (error) {
+        status.textContent = error.name === 'AbortError'
+          ? 'Partilha cancelada. O PDF continua aberto na nova aba; pode usar o ícone Partilhar do visualizador ou Descarregar PDF.'
+          : 'A partilha do ficheiro falhou. O PDF continua aberto na nova aba; pode usar o ícone Partilhar do visualizador ou Descarregar PDF.';
+      }
+    }
+
+    async function createAndOpenPdf() {
+      const preview = openPdfPreview();
+      pdfButton.disabled = true;
+      status.textContent = 'A criar PDF localmente…';
+      try {
+        currentPdfBlob = await createPdfBlob();
+        currentPdfFile = typeof File === 'function'
+          ? new File([currentPdfBlob], 'respostas-YOH.pdf', { type: 'application/pdf' })
+          : null;
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        previewUrl = URL.createObjectURL(currentPdfBlob);
+        if (preview) {
+          preview.location.replace(previewUrl);
+          status.textContent = 'PDF criado localmente e aberto numa nova aba. No Safari do iPhone, use o ícone Partilhar do visualizador. Também pode Partilhar PDF ou Descarregar PDF aqui.';
+        } else {
+          status.textContent = 'PDF criado localmente. O navegador bloqueou a nova aba; use Partilhar PDF ou Descarregar PDF.';
+        }
+        updatePdfActions();
+      } catch {
+        if (preview && !preview.closed) preview.close();
+        status.textContent = 'Não foi possível criar o PDF neste navegador. Use Exportar TXT ou tente abrir a página no Safari.';
+      } finally {
+        pdfButton.disabled = false;
+      }
+    }
+
+    function applyFilter(filter, announce = true) {
+      cards.forEach(card => {
+        card.hidden = filter !== 'all' && card.dataset.timing !== filter;
+      });
+      document.querySelectorAll('[data-filter]').forEach(button => {
+        button.setAttribute('aria-pressed', String(button.dataset.filter === filter));
+      });
+      if (announce) status.textContent = `A mostrar ${document.querySelectorAll('.question:not([hidden])').length} perguntas.`;
+    }
+
+    document.getElementById('save').addEventListener('click', saveResponses);
+    pdfButton.addEventListener('click', createAndOpenPdf);
+    sharePdfButton.addEventListener('click', sharePdf);
+    downloadPdfButton.addEventListener('click', downloadPdf);
+    document.getElementById('copy').addEventListener('click', copyResponses);
+    document.getElementById('download').addEventListener('click', downloadResponses);
+    document.getElementById('share').addEventListener('click', shareResponses);
+    document.getElementById('clear').addEventListener('click', clearResponses);
+    document.querySelectorAll('[data-filter]').forEach(button => {
+      button.addEventListener('click', () => applyFilter(button.dataset.filter));
+    });
+    window.addEventListener('beforeunload', () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    });
+
+    const restored = restoreResponses();
+    applyFilter('now', false);
+    status.textContent = restored
+      ? 'Respostas anteriormente guardadas foram repostas neste dispositivo.'
+      : 'A mostrar as perguntas para responder agora.';
   </script>
 </body>
 </html>
