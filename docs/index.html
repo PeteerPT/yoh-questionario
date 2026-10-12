@@ -18,14 +18,16 @@
     .notice { margin:18px 0 0; padding:13px; border:1px solid #e3a79c; border-radius:12px; color:#5d302b; background:#fff0ec; font-size:.92rem; }
     .notice strong { color:#7d3831; }
     main { padding:18px 14px 90px; }
-    .actions { position:sticky; z-index:2; top:0; display:grid; grid-template-columns:1fr 1fr; gap:9px; padding:12px 0; background:linear-gradient(var(--paper) 82%,transparent); }
-    .actions button { min-height:47px; padding:10px 11px; border:0; border-radius:12px; color:#fff; background:var(--navy); font-weight:800; cursor:pointer; }
-    .actions button.secondary { color:var(--ink); background:#e2e8e5; }
+    .actions { position:sticky; z-index:2; top:0; padding:12px 0; background:linear-gradient(var(--paper) 82%,transparent); }
+    .actions button { width:100%; min-height:52px; padding:10px 14px; border:0; border-radius:12px; color:#fff; background:var(--navy); font-weight:800; cursor:pointer; }
+    .actions button.secondary { margin-top:9px; color:var(--ink); background:#e2e8e5; }
     .actions button:disabled { cursor:wait; opacity:.65; }
-    .actions button:focus-visible,textarea:focus-visible,input:focus-visible { outline:3px solid var(--lilac); outline-offset:3px; }
-    .filters { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 22px; }
-    .filters button { padding:8px 11px; border:1px solid var(--line); border-radius:999px; color:var(--ink); background:var(--white); font-weight:700; cursor:pointer; }
-    .filters button[aria-pressed="true"] { color:#fff; border-color:var(--navy); background:var(--navy); }
+    .actions button:focus-visible,textarea:focus-visible,input:focus-visible,summary:focus-visible { outline:3px solid var(--lilac); outline-offset:3px; }
+    .all-questions, .more-options { margin:14px 0; border:1px solid var(--line); border-radius:12px; background:var(--white); }
+    .all-questions summary, .more-options summary { padding:11px 13px; font-weight:800; cursor:pointer; }
+    .all-questions > div, .more-options > div { padding:0 12px 12px; }
+    .all-questions button, .more-options button { width:100%; min-height:43px; padding:9px 11px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:var(--white); font-weight:700; cursor:pointer; }
+    .more-options button + button { margin-top:8px; }
     .section { margin:30px 0; }
     h2 { margin:0; font-size:1.35rem; letter-spacing:-.035em; }
     .intro { margin:7px 0 13px; color:var(--muted); font-size:.94rem; }
@@ -57,16 +59,17 @@
     textarea { display:block; width:100%; min-height:74px; padding:10px; resize:vertical; border:1px solid #aebbb7; border-radius:10px; color:var(--ink); background:#fff; }
     .closing { margin-top:34px; padding:16px; border-radius:15px; color:var(--paper); background:var(--navy); } .closing h2 { color:var(--mint); }
     .help { margin-top:16px; padding:14px; border-radius:13px; background:#e8e1d4; color:#304451; font-size:.92rem; }
-    @media (min-width:650px) { .actions { grid-template-columns:repeat(3,1fr); } .question { padding:19px; } }
+    @media (min-width:650px) { .question { padding:19px; } }
   </style>
 </head>
 <body>
-  <header class="hero"><div class="wrap"><p class="eyebrow">YOH · nome provisório</p><h1>Questionário de decisões</h1><p class="subtitle">Preencha no telemóvel ou computador. Pode copiar, descarregar ou partilhar as respostas sem enviar nada para um servidor.</p><p class="notice"><strong>Não escreva dados de saúde pessoais.</strong> Não inclua nomes, fotografias, contactos, sintomas ou identificadores de pacientes. Este ficheiro é uma conversa de produto; não aprova uso clínico, critérios universais ou conformidade.</p></div></header>
+  <header class="hero"><div class="wrap"><p class="eyebrow">YOH · nome provisório</p><h1>Questionário de decisões</h1><p class="subtitle">Questionário opcional, preenchido só neste dispositivo.</p><p class="notice"><strong>Não escreva dados de saúde pessoais.</strong> Não inclua nomes, fotografias, contactos, sintomas ou identificadores de pacientes. Este ficheiro é uma conversa de produto; não aprova uso clínico, critérios universais ou conformidade.</p></div></header>
   <main class="wrap">
-    <div class="actions" aria-label="Ações para as respostas"><button type="button" id="save">Guardar no dispositivo</button><button type="button" id="pdf">Criar e abrir PDF</button><button type="button" id="share-pdf" class="secondary" hidden>Partilhar PDF</button><button type="button" id="download-pdf" class="secondary" hidden>Descarregar PDF</button><button type="button" id="copy" class="secondary">Copiar respostas</button><button type="button" id="download" class="secondary">Exportar TXT</button><button type="button" id="share" class="secondary">Partilhar texto</button><button type="button" id="clear" class="secondary">Limpar respostas</button></div>
+    <div class="actions" aria-label="Ações para as respostas"><button type="button" id="pdf">Gerar PDF</button><button type="button" id="download-pdf" class="secondary" hidden>Descarregar PDF</button></div>
     <p class="status" id="status" aria-live="polite"></p>
-    <div class="filters" aria-label="Filtro de perguntas"><button type="button" data-filter="now" aria-pressed="true">Responder agora (24)</button><button type="button" data-filter="all" aria-pressed="false">Tudo (42)</button><button type="button" data-filter="review" aria-pressed="false">Validar com especialistas (17)</button><button type="button" data-filter="later" aria-pressed="false">Mais tarde (1)</button></div>
-    <p class="help"><strong>Responda apenas ao que quiser.</strong> Pode saltar tudo e voltar depois. Para retomar, toque em <em>Guardar no dispositivo</em>: as respostas ficam só neste navegador/dispositivo. <label><input id="include-open" type="checkbox"> Incluir perguntas em aberto no PDF</label>. O PDF inclui respostas de todas as fases, mesmo que esteja a ver apenas um filtro. Para exportar, toque em <em>Criar e abrir PDF</em>: o PDF é criado offline e abre numa nova aba. No iPhone, abra esta ligação no <strong>Safari</strong> antes de exportar; se a abriu no navegador do WhatsApp, use o menu para a abrir no Safari. No visualizador do PDF, use o ícone Partilhar. Se a partilha de ficheiro não estiver disponível, for cancelada ou falhar, volte a esta página e toque em <em>Descarregar PDF</em> para o anexar manualmente.</p>
+    <p class="help">Responda ao que quiser. Toque em Gerar PDF; no iPhone abra no Safari e use Partilhar no PDF.</p>
+    <details class="all-questions"><summary>Ver todas as perguntas</summary><div><button type="button" data-filter="all">Mostrar todas as perguntas (42)</button></div></details>
+    <details class="more-options"><summary>Mais opções</summary><div><button type="button" id="save">Guardar no dispositivo</button><button type="button" id="clear">Limpar respostas guardadas</button></div></details>
 <section class="section"><h2>1. Nome, marca e identidade</h2><p class="intro">Escolhas que dão uma identidade coerente ao conceito, sem registo nem promessa de disponibilidade de marca.</p>
 <article class="question" data-timing="now">
   <p class="number">Pergunta 1</p>
@@ -646,41 +649,9 @@ https://github.com/Hopding/pdf-lib -->
     const cards = [...document.querySelectorAll('.question')];
     const STORAGE_KEY = 'yoh-questionnaire-responses-v1';
     const pdfButton = document.getElementById('pdf');
-    const sharePdfButton = document.getElementById('share-pdf');
     const downloadPdfButton = document.getElementById('download-pdf');
     let currentPdfBlob;
-    let currentPdfFile;
     let previewUrl;
-
-    function responseText() {
-      const date = new Date().toLocaleString('pt-PT');
-      const sections = [...document.querySelectorAll('.section')].map(section => {
-        const title = section.querySelector('h2').textContent;
-        const answers = [...section.querySelectorAll('.question')].map(card => {
-          const question = card.querySelector('h3').textContent;
-          const meta = [...card.querySelectorAll('.tag')].map(tag => tag.textContent).join(' · ');
-          const owner = card.querySelector('.owner').textContent;
-          const selected = [...card.querySelectorAll('[data-option]:checked')].map(input => input.value);
-          const written = card.querySelector('[data-answer]').value.trim();
-          return `• ${question}
-  ${meta}
-  ${owner}
-  Opções: ${selected.length ? selected.join('; ') : '—'}
-  Resposta: ${written || '—'}`;
-        });
-        return `${title}
-${answers.join('\n\n')}`;
-      });
-      const globalAnswer = document.getElementById('global-answer').value.trim();
-      return `YOH — respostas ao questionário
-Preenchido em: ${date}
-
-${sections.join('\n\n')}
-
-Fecho / observações finais: ${globalAnswer || '—'}
-
-Nota: este documento não contém nem deve receber dados pessoais ou de saúde de pacientes.`;
-    }
 
     const answerFields = [...document.querySelectorAll('[data-answer]')];
     const optionFields = [...document.querySelectorAll('[data-option]')];
@@ -693,7 +664,7 @@ Nota: este documento não contém nem deve receber dados pessoais ou de saúde d
         }));
         status.textContent = 'Respostas guardadas apenas neste dispositivo/navegador.';
       } catch {
-        status.textContent = 'Não foi possível guardar neste navegador. Exporte o TXT ou PDF para não perder as respostas.';
+        status.textContent = 'Não foi possível guardar neste navegador. Gere o PDF para não perder as respostas.';
       }
     }
 
@@ -717,38 +688,6 @@ Nota: este documento não contém nem deve receber dados pessoais ou de saúde d
         localStorage.removeItem(STORAGE_KEY);
       } catch {}
       status.textContent = 'Respostas locais limpas.';
-    }
-
-    async function copyResponses() {
-      try {
-        await navigator.clipboard.writeText(responseText());
-        status.textContent = 'Respostas copiadas. Cole no WhatsApp ou email.';
-      } catch {
-        status.textContent = 'Não foi possível copiar automaticamente. Use Exportar TXT.';
-      }
-    }
-
-    function downloadResponses() {
-      const blob = new Blob([responseText()], { type: 'text/plain;charset=utf-8' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'respostas-questionario-YOH.txt';
-      link.click();
-      window.setTimeout(() => URL.revokeObjectURL(link.href), 60_000);
-      status.textContent = 'Ficheiro TXT preparado para enviar por WhatsApp ou email.';
-    }
-
-    async function shareResponses() {
-      if (!navigator.share) {
-        status.textContent = 'Partilha não disponível neste dispositivo. Use Copiar respostas ou Exportar TXT.';
-        return;
-      }
-      try {
-        await navigator.share({ title: 'YOH — respostas ao questionário', text: responseText() });
-        status.textContent = 'Partilha concluída.';
-      } catch (error) {
-        if (error.name !== 'AbortError') status.textContent = 'A partilha não ficou disponível. Use Copiar respostas ou Exportar TXT.';
-      }
     }
 
     function pdfText(value) {
@@ -808,7 +747,6 @@ Nota: este documento não contém nem deve receber dados pessoais ou de saúde d
       add('Não inclua dados pessoais ou de saúde de pacientes neste ficheiro.', { size: 9, color: rgb(.55, .21, .18) });
       y -= 6;
 
-      const includeOpen = document.getElementById('include-open').checked;
       let entries = 0;
       for (const [phase, label] of [
         ['now', 'Responder agora'],
@@ -820,9 +758,8 @@ Nota: este documento não contém nem deve receber dados pessoais ou de saúde d
         for (const card of phaseCards) {
           const selected = [...card.querySelectorAll('[data-option]:checked')].map(input => input.value);
           const written = card.querySelector('[data-answer]').value.trim();
-          const answered = selected.length || written;
-          if (!answered && !includeOpen) continue;
-          entriesInPhase.push({ card, selected, written, answered });
+          if (!selected.length && !written) continue;
+          entriesInPhase.push({ card, selected, written });
         }
         if (!entriesInPhase.length) continue;
         add(label, { size: 13, heading: true, color: rgb(.09, .48, .45) });
@@ -831,12 +768,8 @@ Nota: este documento não contém nem deve receber dados pessoais ou de saúde d
           const question = entry.card.querySelector('h3').textContent;
           const number = entry.card.querySelector('.number').textContent.replace('Pergunta ', '');
           add(`Pergunta ${number}: ${question}`, { size: 10, heading: true });
-          if (entry.answered) {
-            if (entry.selected.length) add(`[x] Opções assinaladas: ${entry.selected.join('; ')}`);
-            if (entry.written) add(`Resposta: ${entry.written}`);
-          } else {
-            add('[ ] Em aberto — sem resposta (facultativo).', { size: 9, color: rgb(.38, .43, .46) });
-          }
+          if (entry.selected.length) add(`[x] Opções assinaladas: ${entry.selected.join('; ')}`);
+          if (entry.written) add(`Resposta: ${entry.written}`);
           y -= 3;
         }
       }
@@ -858,18 +791,6 @@ Nota: este documento não contém nem deve receber dados pessoais ou de saúde d
       return preview;
     }
 
-    function canSharePdf(file) {
-      try {
-        return Boolean(navigator.share && navigator.canShare && navigator.canShare({ files: [file] }));
-      } catch {
-        return false;
-      }
-    }
-
-    function updatePdfActions() {
-      downloadPdfButton.hidden = !currentPdfBlob;
-      sharePdfButton.hidden = !currentPdfFile || !canSharePdf(currentPdfFile);
-    }
 
     function downloadPdf() {
       if (!currentPdfBlob) return;
@@ -884,17 +805,6 @@ Nota: este documento não contém nem deve receber dados pessoais ou de saúde d
       status.textContent = 'PDF preparado para guardar ou anexar manualmente.';
     }
 
-    async function sharePdf() {
-      if (!currentPdfFile || !canSharePdf(currentPdfFile)) return;
-      try {
-        await navigator.share({ title: 'YOH — respostas ao questionário', files: [currentPdfFile] });
-        status.textContent = 'Partilha do PDF concluída.';
-      } catch (error) {
-        status.textContent = error.name === 'AbortError'
-          ? 'Partilha cancelada. O PDF continua aberto na nova aba; pode usar o ícone Partilhar do visualizador ou Descarregar PDF.'
-          : 'A partilha do ficheiro falhou. O PDF continua aberto na nova aba; pode usar o ícone Partilhar do visualizador ou Descarregar PDF.';
-      }
-    }
 
     async function createAndOpenPdf() {
       const preview = openPdfPreview();
@@ -902,21 +812,18 @@ Nota: este documento não contém nem deve receber dados pessoais ou de saúde d
       status.textContent = 'A criar PDF localmente…';
       try {
         currentPdfBlob = await createPdfBlob();
-        currentPdfFile = typeof File === 'function'
-          ? new File([currentPdfBlob], 'respostas-YOH.pdf', { type: 'application/pdf' })
-          : null;
         if (previewUrl) URL.revokeObjectURL(previewUrl);
         previewUrl = URL.createObjectURL(currentPdfBlob);
         if (preview) {
           preview.location.replace(previewUrl);
-          status.textContent = 'PDF criado localmente e aberto numa nova aba. No Safari do iPhone, use o ícone Partilhar do visualizador. Também pode Partilhar PDF ou Descarregar PDF aqui.';
+          status.textContent = 'PDF criado localmente e aberto numa nova aba. No Safari do iPhone, use Partilhar no visualizador do PDF.';
         } else {
-          status.textContent = 'PDF criado localmente. O navegador bloqueou a nova aba; use Partilhar PDF ou Descarregar PDF.';
+          status.textContent = 'PDF criado localmente. O navegador bloqueou a nova aba; use Descarregar PDF.';
         }
-        updatePdfActions();
+        downloadPdfButton.hidden = false;
       } catch {
         if (preview && !preview.closed) preview.close();
-        status.textContent = 'Não foi possível criar o PDF neste navegador. Use Exportar TXT ou tente abrir a página no Safari.';
+        status.textContent = 'Não foi possível criar o PDF neste navegador. Tente abrir a página no Safari.';
       } finally {
         pdfButton.disabled = false;
       }
@@ -934,11 +841,7 @@ Nota: este documento não contém nem deve receber dados pessoais ou de saúde d
 
     document.getElementById('save').addEventListener('click', saveResponses);
     pdfButton.addEventListener('click', createAndOpenPdf);
-    sharePdfButton.addEventListener('click', sharePdf);
     downloadPdfButton.addEventListener('click', downloadPdf);
-    document.getElementById('copy').addEventListener('click', copyResponses);
-    document.getElementById('download').addEventListener('click', downloadResponses);
-    document.getElementById('share').addEventListener('click', shareResponses);
     document.getElementById('clear').addEventListener('click', clearResponses);
     document.querySelector('[data-clear-palette]')?.addEventListener('click', () => {
       document.querySelectorAll('input[name="palette-choice"]').forEach(option => option.checked = false);
